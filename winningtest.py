@@ -91,10 +91,10 @@ class Game (object):
                 return True
             else:
                 print('pairing failed, new try')
-                Game.remove_Pairs(sus_hand, current_index +1)
+                return Game.remove_Pairs(sus_hand, current_index +1)
         else:
             print('no pair here, checking next tile')
-            Game.remove_Pairs(sus_hand, current_index +1)
+            return Game.remove_Pairs(sus_hand, current_index +1)
     
     # yup, recursion time
     @staticmethod
