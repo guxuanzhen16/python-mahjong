@@ -70,6 +70,7 @@ class Game (object):
             hand = []
             for j in range(numTiles_in_Hand):
                 hand.append(self.wall.deal())
+            print('calling sort hand to initialize hands')
             sorted_Hand = Game.sort_Hand(hand)
             self.hands.append(sorted_Hand)
 
@@ -154,6 +155,7 @@ class Game (object):
     def is_Win(hand):
         sus_hand = copy.deepcopy(hand)
         # ensure hand is sorted properly
+        print('calling sort hand to check win')
         sus_hand = Game.sort_Hand(sus_hand)
         # begin the pain
         # if the hand is winnable, returns true
@@ -164,13 +166,16 @@ class Game (object):
     @staticmethod
     def hand_To_String(hand: list[Tile]) -> str:
         hand_String = ''
+        print('calling sort hand to print')
         sorted_Hand = Game.sort_Hand(hand)
         current_Suit = sorted_Hand[0].suit # only print suit at end of a group of same suit
         for tile in sorted_Hand:
-            hand_String = hand_String + str(tile)
             if current_Suit != tile.suit:
                 hand_String = hand_String + current_Suit + ' '
+                hand_String = hand_String + str(tile)
                 current_Suit = tile.suit
+            else:
+                hand_String = hand_String + str(tile)
         if current_Suit == sorted_Hand[-1].suit:
                 hand_String = hand_String + sorted_Hand[-1].suit
         hand_String = 'Hand: ' + hand_String
@@ -180,28 +185,36 @@ class Game (object):
     @staticmethod
     def sort_Hand(hand: list[Tile]) -> list[Tile]:
         suited_Hand = copy.deepcopy(hand)
-        suited_Hand = sorted(hand, key=lambda tile: tile.suit))
+        suited_Hand = sorted(suited_Hand, key=lambda tile: tile.suit)
         # sort within groups of suits then merge back into main hand
         # this way the hand is grouped into suits, which are then ranked in order
-        current_Suit = sorted_Hand[0].suit
+        sorted_Hand = []
+        current_Suit = suited_Hand[0].suit
         suit_Group = []
-        for tile in sorted_Hand:
-            
-
-
+        for tile in suited_Hand:
+            if current_Suit == tile.suit:
+                suit_Group.append(tile)
+            else:
+                suit_Group = sorted(suit_Group, key=lambda tile: tile.rank)
+                sorted_Hand.extend(suit_Group)
+                suit_Group =[]
+                current_Suit = tile.suit
+                suit_Group.append(tile)
+        if len(suit_Group) > 0:
+            sorted_Hand.extend(suit_Group)
         return sorted_Hand
 
     @staticmethod
     # testing
     def make_Winning_Hand():
         hand = []
-        hand.append(Tile(1, 'M'))
-        hand.append(Tile(1, 'M'))
-        hand.append(Tile(1, 'M'))
+        hand.append(Tile(1, 'S'))
+        hand.append(Tile(6, 'M'))
+        hand.append(Tile(1, 'S'))
         hand.append(Tile(4, 'M'))
         hand.append(Tile(5, 'M'))
         hand.append(Tile(6, 'M'))
-        hand.append(Tile(6, 'M'))
+        hand.append(Tile(1, 'S'))
         hand.append(Tile(6, 'M'))
         hand.append(Tile(7, 'P'))
         hand.append(Tile(7, 'P'))
@@ -242,20 +255,22 @@ class Game (object):
     # testing
     def make_Wrong_Hand():
         hand = []
-        hand.append(Tile(1, 'B'))
-        hand.append(Tile(1, 'B'))
-        hand.append(Tile(2, 'B'))
-        hand.append(Tile(3, 'B'))
-        hand.append(Tile(3, 'B'))
-        hand.append(Tile(3, 'B'))
-        hand.append(Tile(4, 'B'))
-        hand.append(Tile(4, 'B'))
-        hand.append(Tile(5, 'B'))
-        hand.append(Tile(6, 'B'))
-        hand.append(Tile(6, 'B'))
-        hand.append(Tile(7, 'B'))
-        hand.append(Tile(8, 'B'))
-        hand.append(Tile(9, 'B'))
+        hand.append(Tile(1, 'M'))
+        hand.append(Tile(2, 'M'))
+        hand.append(Tile(3, 'S'))
+        hand.append(Tile(3, 'S'))
+        hand.append(Tile(3, 'S'))
+        hand.append(Tile(3, 'M'))
+        hand.append(Tile(4, 'S'))
+        hand.append(Tile(4, 'S'))
+        hand.append(Tile(5, 'S'))
+        hand.append(Tile(8, 'P'))
+        hand.append(Tile(7, 'M'))
+        hand.append(Tile(7, 'P'))
+        hand.append(Tile(6, 'P'))
+        hand.append(Tile(9, 'P'))
+
+        print ('2 Test: ' + Game.hand_To_String(hand))
 
         if Game.is_Win(hand):
             print('This shouldn\'t be a win!')
@@ -263,15 +278,15 @@ class Game (object):
             print('Correctly not a win')
 
     def play(self):
-        for i in range(len(self.hands)):
-            print(Game.hand_To_String(self.hands[i]))
-            if Game.is_Win(self.hands[i]):
+        for hand in self.hands:
+            print(Game.hand_To_String(hand))
+            if Game.is_Win(hand):
                 print('Tsumo!')
 
 class main():
     for i in range(1):
-        game = Game(4)
-        game.play()
+        game = Game(1)
+        #game.play()
 
 print('Finish')
 Game.make_Winning_Hand()
