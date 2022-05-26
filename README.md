@@ -4,9 +4,10 @@ Game logic for mahjong to be implemented in godot (to handle GUI and netcode). I
 ## To-do
 - [x] Based winning hand determination
 - [x] All main suits
-- [ ] Hand class
-- [ ] Honor suits
+- [x] Hand class
 - [x] Seven pairs determination
-- [ ] Draw and discard
-
-
+- [ ] Testing class
+- [ ] Honor suits
+- [ ] Draw and discard (basic interaction)
+- [ ] Ready determination
+- [ ] Score calculation
