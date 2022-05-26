@@ -73,6 +73,24 @@ class Game (object):
             print('calling sort hand to initialize hands')
             sorted_Hand = Game.sort_Hand(hand)
             self.hands.append(sorted_Hand)
+    
+    @staticmethod
+    def check_seven_pairs(sus_hand: list[Tile]) -> bool:
+        print('Running!')
+        half_hand = len(sus_hand)/2
+
+        if len(sus_hand) % 2 != 0:
+            return False
+
+        num_pairs = int(half_hand)
+
+        for i in range(num_pairs):
+            print(sus_hand[2*i], sus_hand[2*i+1])
+            if sus_hand[2*i] != sus_hand[2*i+1]:
+                return False
+            else:
+                pass
+        return True
 
     ''' finds all pairs in hand, removes them and starts removing melds'''
     @staticmethod
@@ -152,11 +170,15 @@ class Game (object):
             return False
 
     @staticmethod
-    def is_Win(hand):
+    def is_Win(hand) -> bool:
         sus_hand = copy.deepcopy(hand)
         # ensure hand is sorted properly
         print('calling sort hand to check win')
         sus_hand = Game.sort_Hand(sus_hand)
+        # check seven_pairs
+        if Game.check_seven_pairs(sus_hand):
+            print('This is seven pairs!')
+            return True
         # begin the pain
         # if the hand is winnable, returns true
         return Game.remove_Pairs(sus_hand)
@@ -201,6 +223,7 @@ class Game (object):
                 current_Suit = tile.suit
                 suit_Group.append(tile)
         if len(suit_Group) > 0:
+            suit_Group = sorted(suit_Group, key=lambda tile: tile.rank)
             sorted_Hand.extend(suit_Group)
         return sorted_Hand
 
@@ -225,7 +248,9 @@ class Game (object):
 
         print ('1 Test: ' + Game.hand_To_String(hand))
 
-        if Game.is_Win(hand):
+        if Game.check_seven_pairs(hand):
+            print('This is a seven_pair Hand!')
+        elif Game.is_Win(hand):
             print('1. Tsumo!')
         else:
             print('1. Something went wrong, should have been a win')
@@ -276,6 +301,31 @@ class Game (object):
             print('This shouldn\'t be a win!')
         else:
             print('Correctly not a win')
+    
+    @staticmethod
+    def make_seven_pairs_Hand():
+        hand = []
+        hand.append(Tile(4, 'M'))
+        hand.append(Tile(1, 'S'))
+        hand.append(Tile(1, 'M'))
+        hand.append(Tile(2, 'P'))
+        hand.append(Tile(2, 'P'))
+        hand.append(Tile(3, 'P'))
+        hand.append(Tile(3, 'P'))
+        hand.append(Tile(1, 'M'))
+        hand.append(Tile(4, 'M'))
+        hand.append(Tile(6, 'S'))
+        hand.append(Tile(1, 'S'))
+        hand.append(Tile(6, 'M'))
+        hand.append(Tile(6, 'M'))
+        hand.append(Tile(6, 'S'))
+
+        print ('3 Test: ' + Game.hand_To_String(hand))
+
+        if Game.is_Win(hand):
+            print('This is a win!')
+        else:
+            print('Correctly not a win')
 
     def play(self):
         for hand in self.hands:
@@ -288,6 +338,8 @@ class main():
         game = Game(1)
         #game.play()
 
+
 print('Finish')
 Game.make_Winning_Hand()
 Game.make_Wrong_Hand()
+Game.make_seven_pairs_Hand()
