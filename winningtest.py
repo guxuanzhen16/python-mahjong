@@ -40,96 +40,65 @@ class Tile(object):
         else:
             return False
 
-class Wall (object):
+class Hand(object):
     def __init__(self):
-        self.wall = []
-        for i in range(4):
-            for suit in Tile.SUITS:
-                for rank in Tile.RANKS:
-                    tile = Tile(rank, suit)
-                    self.wall.append(tile)
+        self.hand = []
 
-    def shuffle(self):
-        random.shuffle(self.wall)
+    def add_Tile(self, tile: Tile):
+        self.hand.append(tile)
 
-    def deal(self):
-        if len(self.wall) == 0:
-            return None
-        else:
-            return self.wall.pop(0)
-
-class Game (object):
-    def __init__ (self, numHands):
-        self.wall = Wall()
-        self.wall.shuffle()
-        self.hands = []
-        numTiles_in_Hand = 14
-
-        # create and sort hands
-        for i in range(numHands):
-            hand = []
-            for j in range(numTiles_in_Hand):
-                hand.append(self.wall.deal())
-            print('calling sort hand to initialize hands')
-            sorted_Hand = Game.sort_Hand(hand)
-            self.hands.append(sorted_Hand)
-    
-    @staticmethod
-    def check_seven_pairs(sus_hand: list[Tile]) -> bool:
-        print('Running!')
-        half_hand = len(sus_hand)/2
-
-        if len(sus_hand) % 2 != 0:
-            return False
-
-        num_pairs = int(half_hand)
-
-        for i in range(num_pairs):
-            print(sus_hand[2*i], sus_hand[2*i+1])
-            if sus_hand[2*i] != sus_hand[2*i+1]:
-                return False
+    # sorts by rank and suit
+    def sort_Hand(self):
+        print('sorting suits')
+        self.hand = sorted(self.hand, key=lambda tile: tile.suit)
+        # sort within groups of suits then merge back into main hand
+        # this way the hand is grouped into suits, which are then ranked in order
+        sorted_Hand = []
+        current_Suit = self.hand[0].suit
+        suit_Group = []
+        for tile in self.hand:
+            if current_Suit == tile.suit:
+                suit_Group.append(tile)
             else:
-                pass
+                suit_Group = sorted(suit_Group, key=lambda tile: tile.rank)
+                sorted_Hand.extend(suit_Group)
+                suit_Group =[]
+                current_Suit = tile.suit
+                suit_Group.append(tile)
+        if len(suit_Group) > 0:
+            suit_Group = sorted(suit_Group, key=lambda tile: tile.rank)
+            sorted_Hand.extend(suit_Group)
+        self.hand = sorted_Hand
+
+    '''converts hand into a readable format, somewhat following riichi convention but
+    accounting for Chinese mahjong variant tiles so honors are not collapsed into one notation (Z in riichi)'''
+    def hand_To_String(self) -> str:
+        if len(self.hand) == 0:
+            print('Nothing in hand to print!')
+        hand_String = ''
+        self.sort_Hand()
+        current_Suit = self.hand[0].suit # only print suit at end of a group of same suit
+        for tile in self.hand:
+            if current_Suit != tile.suit:
+                hand_String = hand_String + current_Suit + ' '
+                hand_String = hand_String + str(tile)
+                current_Suit = tile.suit
+            else:
+                hand_String = hand_String + str(tile)
+        if current_Suit == self.hand[-1].suit:
+                hand_String = hand_String + self.hand[-1].suit
+        hand_String = 'Hand: ' + hand_String
+        return hand_String
+
+    def check_Seven_Pairs(self) -> bool:
+        if len(self.hand) % 2 != 0:
+            return False
+        half_hand = len(self.hand)/2
+        num_pairs = int(half_hand)
+        for i in range(num_pairs):
+            if self.hand[2*i] != self.hand[2*i+1]:
+                return False
         return True
-
-    ''' finds all pairs in hand, removes them and starts removing melds'''
-    @staticmethod
-    def remove_Pairs(sus_hand: list[Tile]) -> bool:
-        checked_tiles = [] # check skips tiles already checked
-        for i in range(len(sus_hand)):
-            # ends before the last tile
-            if i == len(sus_hand) - 2:
-                return False # no pairs were found
-            elif not (sus_hand[i] in checked_tiles):
-                if sus_hand[i] == sus_hand[i+1]:
-                    depaired_hand = copy.deepcopy(sus_hand)
-                    del depaired_hand[i : i + 2]
-                    # start removing melds with the hand without a pair
-                    if Game.remove_Melds(depaired_hand):
-                        # print('hand all removed!')
-                        return True
-                else:
-                    checked_tiles.append(sus_hand[i])
-
-    # yup, recursion time
-    @staticmethod
-    def remove_Melds(demelded_hand):
-        # print('length left: ' + str(len(demelded_hand)))
-        # if hand has been removed to the point of nothing left, then all
-        # tiles could form into valid melds and hand is won
-        if len(demelded_hand) == 0:
-            # print('melds are cleared!')
-            return True
-        else:
-            # is a set?
-            # can just check consecutive sets because they're sorted
-            if Game.is_Set(demelded_hand):
-                return Game.remove_Melds(demelded_hand)
-            # is a run?
-            # runs cannot be checked in consective order because a same tile might get in the way
-            # is_Run also removes a run if detected
-            elif Game.is_Run(demelded_hand):
-                return Game.remove_Melds(demelded_hand)
 
     @staticmethod
     def is_Set(demelded_hand):
@@ -138,7 +107,7 @@ class Game (object):
            # print(demelded_hand[0])
            # print(demelded_hand[1])
            # print(demelded_hand[2])
-            Game.remove_Set(demelded_hand)
+            Hand.remove_Set(demelded_hand)
             return True
 
     @staticmethod
@@ -163,94 +132,120 @@ class Game (object):
             if demelded_hand[0].is_Higher_Tile(demelded_hand[i]):
                 for j in range(i + 1, len(demelded_hand)):
                     if demelded_hand[i].is_Higher_Tile(demelded_hand[j]):
-                        Game.remove_Run(demelded_hand, 0, i, j)
+                        Hand.remove_Run(demelded_hand, 0, i, j)
                         return True
         else:
             # print('no valid meld found!')
             return False
 
+    # yup, recursion time
     @staticmethod
-    def is_Win(hand) -> bool:
-        sus_hand = copy.deepcopy(hand)
+    def remove_Melds(demelded_hand):
+        # print('length left: ' + str(len(demelded_hand)))
+        # if hand has been removed to the point of nothing left, then all
+        # tiles could form into valid melds and hand is won
+        if len(demelded_hand) == 0:
+            # print('melds are cleared!')
+            return True
+        else:
+            # is a set?
+            # can just check consecutive sets because they're sorted
+            if Hand.is_Set(demelded_hand):
+                return Hand.remove_Melds(demelded_hand)
+            # is a run?
+            # runs cannot be checked in consective order because a same tile might get in the way
+            # is_Run also removes a run if detected
+            elif Hand.is_Run(demelded_hand):
+                return Hand.remove_Melds(demelded_hand)
+
+    ''' finds all pairs in hand, removes them and starts removing melds'''
+    def remove_Pairs(self) -> bool:
+        checked_tiles = [] # check skips tiles already checked
+        for i in range(len(self.hand)):
+            # ends before the last tile
+            if i == len(self.hand) - 2:
+                return False # no pairs were found
+            elif not (self.hand[i] in checked_tiles):
+                if self.hand[i] == self.hand[i+1]:
+                    depaired_hand = copy.deepcopy(self.hand)
+                    del depaired_hand[i : i + 2]
+                    # start removing melds with the hand without a pair
+                    if Hand.remove_Melds(depaired_hand):
+                        # print('hand all removed!')
+                        return True
+                else:
+                    checked_tiles.append(self.hand[i])
+
+
+    # checks if hand is a complete winning hand
+    def is_Win(self) -> bool:
+        sus_hand = copy.deepcopy(self)
         # ensure hand is sorted properly
-        print('calling sort hand to check win')
-        sus_hand = Game.sort_Hand(sus_hand)
+        sus_hand.sort_Hand()
         # check seven_pairs
-        if Game.check_seven_pairs(sus_hand):
+        if self.check_Seven_Pairs():
             print('This is seven pairs!')
             return True
         # begin the pain
         # if the hand is winnable, returns true
-        return Game.remove_Pairs(sus_hand)
+        return Hand.remove_Pairs(sus_hand)
 
-    '''converts hand into a readable format, somewhat following riichi convention but
-    accounting for Chinese mahjong variant tiles so honors are not collapsed into one notation (Z in riichi)'''
-    @staticmethod
-    def hand_To_String(hand: list[Tile]) -> str:
-        hand_String = ''
-        print('calling sort hand to print')
-        sorted_Hand = Game.sort_Hand(hand)
-        current_Suit = sorted_Hand[0].suit # only print suit at end of a group of same suit
-        for tile in sorted_Hand:
-            if current_Suit != tile.suit:
-                hand_String = hand_String + current_Suit + ' '
-                hand_String = hand_String + str(tile)
-                current_Suit = tile.suit
-            else:
-                hand_String = hand_String + str(tile)
-        if current_Suit == sorted_Hand[-1].suit:
-                hand_String = hand_String + sorted_Hand[-1].suit
-        hand_String = 'Hand: ' + hand_String
-        return hand_String
+class Wall (object):
+    def __init__(self):
+        self.wall = []
+        for i in range(4):
+            for suit in Tile.SUITS:
+                for rank in Tile.RANKS:
+                    tile = Tile(rank, suit)
+                    self.wall.append(tile)
 
-    # creates a deep copy of the hand that is sorted by rank and suit
-    @staticmethod
-    def sort_Hand(hand: list[Tile]) -> list[Tile]:
-        suited_Hand = copy.deepcopy(hand)
-        suited_Hand = sorted(suited_Hand, key=lambda tile: tile.suit)
-        # sort within groups of suits then merge back into main hand
-        # this way the hand is grouped into suits, which are then ranked in order
-        sorted_Hand = []
-        current_Suit = suited_Hand[0].suit
-        suit_Group = []
-        for tile in suited_Hand:
-            if current_Suit == tile.suit:
-                suit_Group.append(tile)
-            else:
-                suit_Group = sorted(suit_Group, key=lambda tile: tile.rank)
-                sorted_Hand.extend(suit_Group)
-                suit_Group =[]
-                current_Suit = tile.suit
-                suit_Group.append(tile)
-        if len(suit_Group) > 0:
-            suit_Group = sorted(suit_Group, key=lambda tile: tile.rank)
-            sorted_Hand.extend(suit_Group)
-        return sorted_Hand
+    def shuffle(self):
+        random.shuffle(self.wall)
+
+    def deal(self) -> Tile:
+        if len(self.wall) == 0:
+            return None
+        else:
+            return self.wall.pop(0)
+
+class Game (object):
+    def __init__ (self, numHands):
+        self.wall = Wall()
+        self.wall.shuffle()
+        self.hands = []
+        numTiles_in_Hand = 14
+
+        # create and sort hands
+        for i in range(numHands):
+            hand = Hand()
+            for j in range(numTiles_in_Hand):
+                hand.add_Tile(self.wall.deal())
+            hand.sort_Hand()
+            self.hands.append(hand)
+
 
     @staticmethod
     # testing
     def make_Winning_Hand():
-        hand = []
-        hand.append(Tile(1, 'S'))
-        hand.append(Tile(6, 'M'))
-        hand.append(Tile(1, 'S'))
-        hand.append(Tile(4, 'M'))
-        hand.append(Tile(5, 'M'))
-        hand.append(Tile(6, 'M'))
-        hand.append(Tile(1, 'S'))
-        hand.append(Tile(6, 'M'))
-        hand.append(Tile(7, 'P'))
-        hand.append(Tile(7, 'P'))
-        hand.append(Tile(7, 'P'))
-        hand.append(Tile(8, 'M'))
-        hand.append(Tile(8, 'M'))
-        hand.append(Tile(8, 'M'))
+        hand = Hand()
+        hand.add_Tile(Tile(1, 'S'))
+        hand.add_Tile(Tile(6, 'M'))
+        hand.add_Tile(Tile(1, 'S'))
+        hand.add_Tile(Tile(4, 'M'))
+        hand.add_Tile(Tile(5, 'M'))
+        hand.add_Tile(Tile(6, 'M'))
+        hand.add_Tile(Tile(1, 'S'))
+        hand.add_Tile(Tile(6, 'M'))
+        hand.add_Tile(Tile(7, 'P'))
+        hand.add_Tile(Tile(7, 'P'))
+        hand.add_Tile(Tile(7, 'P'))
+        hand.add_Tile(Tile(8, 'M'))
+        hand.add_Tile(Tile(8, 'M'))
+        hand.add_Tile(Tile(8, 'M'))
 
-        print ('1 Test: ' + Game.hand_To_String(hand))
+        print ('1 Test: ' + hand.hand_To_String())
 
-        if Game.check_seven_pairs(hand):
-            print('This is a seven_pair Hand!')
-        elif Game.is_Win(hand):
+        if hand.is_Win():
             print('1. Tsumo!')
         else:
             print('1. Something went wrong, should have been a win')
@@ -279,50 +274,50 @@ class Game (object):
     @staticmethod
     # testing
     def make_Wrong_Hand():
-        hand = []
-        hand.append(Tile(1, 'M'))
-        hand.append(Tile(2, 'M'))
-        hand.append(Tile(3, 'S'))
-        hand.append(Tile(3, 'S'))
-        hand.append(Tile(3, 'S'))
-        hand.append(Tile(3, 'M'))
-        hand.append(Tile(4, 'S'))
-        hand.append(Tile(4, 'S'))
-        hand.append(Tile(5, 'S'))
-        hand.append(Tile(8, 'P'))
-        hand.append(Tile(7, 'M'))
-        hand.append(Tile(7, 'P'))
-        hand.append(Tile(6, 'P'))
-        hand.append(Tile(9, 'P'))
+        hand = Hand()
+        hand.add_Tile(Tile(1, 'M'))
+        hand.add_Tile(Tile(2, 'M'))
+        hand.add_Tile(Tile(3, 'S'))
+        hand.add_Tile(Tile(3, 'S'))
+        hand.add_Tile(Tile(3, 'S'))
+        hand.add_Tile(Tile(3, 'M'))
+        hand.add_Tile(Tile(4, 'S'))
+        hand.add_Tile(Tile(4, 'S'))
+        hand.add_Tile(Tile(5, 'S'))
+        hand.add_Tile(Tile(8, 'P'))
+        hand.add_Tile(Tile(7, 'M'))
+        hand.add_Tile(Tile(7, 'P'))
+        hand.add_Tile(Tile(6, 'P'))
+        hand.add_Tile(Tile(9, 'P'))
 
-        print ('2 Test: ' + Game.hand_To_String(hand))
+        print ('2 Test: ' + hand.hand_To_String())
 
-        if Game.is_Win(hand):
+        if hand.is_Win():
             print('This shouldn\'t be a win!')
         else:
             print('Correctly not a win')
     
     @staticmethod
-    def make_seven_pairs_Hand():
-        hand = []
-        hand.append(Tile(4, 'M'))
-        hand.append(Tile(1, 'S'))
-        hand.append(Tile(1, 'M'))
-        hand.append(Tile(2, 'P'))
-        hand.append(Tile(2, 'P'))
-        hand.append(Tile(3, 'P'))
-        hand.append(Tile(3, 'P'))
-        hand.append(Tile(1, 'M'))
-        hand.append(Tile(4, 'M'))
-        hand.append(Tile(6, 'S'))
-        hand.append(Tile(1, 'S'))
-        hand.append(Tile(6, 'M'))
-        hand.append(Tile(6, 'M'))
-        hand.append(Tile(6, 'S'))
+    def make_Seven_Pairs_Hand():
+        hand = Hand()
+        hand.add_Tile(Tile(4, 'M'))
+        hand.add_Tile(Tile(1, 'S'))
+        hand.add_Tile(Tile(1, 'M'))
+        hand.add_Tile(Tile(2, 'P'))
+        hand.add_Tile(Tile(2, 'P'))
+        hand.add_Tile(Tile(3, 'P'))
+        hand.add_Tile(Tile(3, 'P'))
+        hand.add_Tile(Tile(1, 'M'))
+        hand.add_Tile(Tile(4, 'M'))
+        hand.add_Tile(Tile(6, 'S'))
+        hand.add_Tile(Tile(1, 'S'))
+        hand.add_Tile(Tile(6, 'M'))
+        hand.add_Tile(Tile(6, 'M'))
+        hand.add_Tile(Tile(6, 'S'))
 
-        print ('3 Test: ' + Game.hand_To_String(hand))
+        print ('3 Test: ' + hand.hand_To_String())
 
-        if Game.is_Win(hand):
+        if hand.is_Win():
             print('This is a win!')
         else:
             print('Correctly not a win')
@@ -342,4 +337,4 @@ class main():
 print('Finish')
 Game.make_Winning_Hand()
 Game.make_Wrong_Hand()
-Game.make_seven_pairs_Hand()
+Game.make_Seven_Pairs_Hand()
