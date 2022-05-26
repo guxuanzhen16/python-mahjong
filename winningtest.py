@@ -2,7 +2,7 @@ import random, copy
 
 class Tile(object):
     RANKS = (1, 2, 3, 4, 5, 6, 7, 8, 9)
-    SUITS = ('B')
+    SUITS = ('M', 'P', 'S') # Sou (bamboo), Pin (dots), Man (characters)
 
     def __init__(self, rank, suit):
         self.rank = rank
@@ -12,10 +12,10 @@ class Tile(object):
         return str(self.rank)
     
     def __eq__ (self, other):
-        return (self.rank == other.rank)
+        return (self.rank == other.rank) and (self.suit == other.suit)
 
     def __ne__ (self, other):
-        return (self.rank != other.rank)
+        return (self.rank != other.rank) and (self.suit == other.suit)
 
     def __lt__ (self, other):
         return (self.rank < other.rank)
@@ -30,12 +30,12 @@ class Tile(object):
         return (self.rank >= other.rank)
 
     def is_Same_Suit(self, other):
-        return (same.suit == other.suit)
+        return (self.suit == other.suit)
 
-    # checks if a given tile is higher than this tile by one
+    # checks if a given tile is higher than this tile by one and is same suit
     # used in run checks
     def is_Higher_Tile(self, other):
-        if self.rank + 1 == other.rank:
+        if self.rank + 1 == other.rank and self.is_Same_Suit(other):
             return True
         else:
             return False
@@ -70,8 +70,9 @@ class Game (object):
             hand = []
             for j in range(numTiles_in_Hand):
                 hand.append(self.wall.deal())
-            sortedHand = sorted(hand, key=lambda tile: tile.rank)
-            self.hands.append(sortedHand)
+            print('calling sort hand to initialize hands')
+            sorted_Hand = Game.sort_Hand(hand)
+            self.hands.append(sorted_Hand)
 
     ''' finds all pairs in hand, removes them and starts removing melds'''
     @staticmethod
@@ -87,7 +88,7 @@ class Game (object):
                     del depaired_hand[i : i + 2]
                     # start removing melds with the hand without a pair
                     if Game.remove_Melds(depaired_hand):
-                        print('hand all removed!')
+                        # print('hand all removed!')
                         return True
                 else:
                     checked_tiles.append(sus_hand[i])
@@ -95,11 +96,11 @@ class Game (object):
     # yup, recursion time
     @staticmethod
     def remove_Melds(demelded_hand):
-        print('length left: ' + str(len(demelded_hand)))
+        # print('length left: ' + str(len(demelded_hand)))
         # if hand has been removed to the point of nothing left, then all
         # tiles could form into valid melds and hand is won
         if len(demelded_hand) == 0:
-            print('melds are cleared!')
+            # print('melds are cleared!')
             return True
         else:
             # is a set?
@@ -115,10 +116,10 @@ class Game (object):
     @staticmethod
     def is_Set(demelded_hand):
         if demelded_hand[0] == demelded_hand[1] == demelded_hand[2]:
-            print('set detected, removing set')
-            print(demelded_hand[0])
-            print(demelded_hand[1])
-            print(demelded_hand[2])
+           # print('set detected, removing set')
+           # print(demelded_hand[0])
+           # print(demelded_hand[1])
+           # print(demelded_hand[2])
             Game.remove_Set(demelded_hand)
             return True
 
@@ -129,10 +130,10 @@ class Game (object):
     @staticmethod
     # removes three tiles in a run given the indexes
     def remove_Run(demelded_hand, first_tile_loc, second_tile_loc, third_tile_loc):
-        print('run removal')
-        print(demelded_hand[first_tile_loc])
-        print(demelded_hand[second_tile_loc])
-        print(demelded_hand[third_tile_loc])
+       # print('run removal')
+       # print(demelded_hand[first_tile_loc])
+       # print(demelded_hand[second_tile_loc])
+       # print(demelded_hand[third_tile_loc])
         demelded_hand.pop(third_tile_loc)
         demelded_hand.pop(second_tile_loc)
         demelded_hand.pop(first_tile_loc)
@@ -147,36 +148,82 @@ class Game (object):
                         Game.remove_Run(demelded_hand, 0, i, j)
                         return True
         else:
-            print('no valid meld found!')
+            # print('no valid meld found!')
             return False
 
     @staticmethod
     def is_Win(hand):
         sus_hand = copy.deepcopy(hand)
         # ensure hand is sorted properly
-        sus_hand = sorted(sus_hand, key=lambda tile: tile.rank)
+        print('calling sort hand to check win')
+        sus_hand = Game.sort_Hand(sus_hand)
         # begin the pain
         # if the hand is winnable, returns true
         return Game.remove_Pairs(sus_hand)
+
+    '''converts hand into a readable format, somewhat following riichi convention but
+    accounting for Chinese mahjong variant tiles so honors are not collapsed into one notation (Z in riichi)'''
+    @staticmethod
+    def hand_To_String(hand: list[Tile]) -> str:
+        hand_String = ''
+        print('calling sort hand to print')
+        sorted_Hand = Game.sort_Hand(hand)
+        current_Suit = sorted_Hand[0].suit # only print suit at end of a group of same suit
+        for tile in sorted_Hand:
+            if current_Suit != tile.suit:
+                hand_String = hand_String + current_Suit + ' '
+                hand_String = hand_String + str(tile)
+                current_Suit = tile.suit
+            else:
+                hand_String = hand_String + str(tile)
+        if current_Suit == sorted_Hand[-1].suit:
+                hand_String = hand_String + sorted_Hand[-1].suit
+        hand_String = 'Hand: ' + hand_String
+        return hand_String
+
+    # creates a deep copy of the hand that is sorted by rank and suit
+    @staticmethod
+    def sort_Hand(hand: list[Tile]) -> list[Tile]:
+        suited_Hand = copy.deepcopy(hand)
+        suited_Hand = sorted(suited_Hand, key=lambda tile: tile.suit)
+        # sort within groups of suits then merge back into main hand
+        # this way the hand is grouped into suits, which are then ranked in order
+        sorted_Hand = []
+        current_Suit = suited_Hand[0].suit
+        suit_Group = []
+        for tile in suited_Hand:
+            if current_Suit == tile.suit:
+                suit_Group.append(tile)
+            else:
+                suit_Group = sorted(suit_Group, key=lambda tile: tile.rank)
+                sorted_Hand.extend(suit_Group)
+                suit_Group =[]
+                current_Suit = tile.suit
+                suit_Group.append(tile)
+        if len(suit_Group) > 0:
+            sorted_Hand.extend(suit_Group)
+        return sorted_Hand
 
     @staticmethod
     # testing
     def make_Winning_Hand():
         hand = []
-        hand.append(Tile(1, 'B'))
-        hand.append(Tile(1, 'B'))
-        hand.append(Tile(1, 'B'))
-        hand.append(Tile(4, 'B'))
-        hand.append(Tile(5, 'B'))
-        hand.append(Tile(6, 'B'))
-        hand.append(Tile(6, 'B'))
-        hand.append(Tile(6, 'B'))
-        hand.append(Tile(7, 'B'))
-        hand.append(Tile(7, 'B'))
-        hand.append(Tile(7, 'B'))
-        hand.append(Tile(8, 'B'))
-        hand.append(Tile(8, 'B'))
-        hand.append(Tile(8, 'B'))
+        hand.append(Tile(1, 'S'))
+        hand.append(Tile(6, 'M'))
+        hand.append(Tile(1, 'S'))
+        hand.append(Tile(4, 'M'))
+        hand.append(Tile(5, 'M'))
+        hand.append(Tile(6, 'M'))
+        hand.append(Tile(1, 'S'))
+        hand.append(Tile(6, 'M'))
+        hand.append(Tile(7, 'P'))
+        hand.append(Tile(7, 'P'))
+        hand.append(Tile(7, 'P'))
+        hand.append(Tile(8, 'M'))
+        hand.append(Tile(8, 'M'))
+        hand.append(Tile(8, 'M'))
+
+        print ('1 Test: ' + Game.hand_To_String(hand))
 
         if Game.is_Win(hand):
             print('1. Tsumo!')
@@ -208,20 +255,22 @@ class Game (object):
     # testing
     def make_Wrong_Hand():
         hand = []
-        hand.append(Tile(1, 'B'))
-        hand.append(Tile(1, 'B'))
-        hand.append(Tile(2, 'B'))
-        hand.append(Tile(3, 'B'))
-        hand.append(Tile(3, 'B'))
-        hand.append(Tile(3, 'B'))
-        hand.append(Tile(4, 'B'))
-        hand.append(Tile(4, 'B'))
-        hand.append(Tile(5, 'B'))
-        hand.append(Tile(6, 'B'))
-        hand.append(Tile(6, 'B'))
-        hand.append(Tile(7, 'B'))
-        hand.append(Tile(8, 'B'))
-        hand.append(Tile(9, 'B'))
+        hand.append(Tile(1, 'M'))
+        hand.append(Tile(2, 'M'))
+        hand.append(Tile(3, 'S'))
+        hand.append(Tile(3, 'S'))
+        hand.append(Tile(3, 'S'))
+        hand.append(Tile(3, 'M'))
+        hand.append(Tile(4, 'S'))
+        hand.append(Tile(4, 'S'))
+        hand.append(Tile(5, 'S'))
+        hand.append(Tile(8, 'P'))
+        hand.append(Tile(7, 'M'))
+        hand.append(Tile(7, 'P'))
+        hand.append(Tile(6, 'P'))
+        hand.append(Tile(9, 'P'))
+
+        print ('2 Test: ' + Game.hand_To_String(hand))
 
         if Game.is_Win(hand):
             print('This shouldn\'t be a win!')
@@ -229,19 +278,16 @@ class Game (object):
             print('Correctly not a win')
 
     def play(self):
-        for i in range(len(self.hands)):
-            hand = ''
-            for tile in self.hands[i]:
-                hand = hand + str(tile) + ' '
-            print('Hand ' + str(i + 1) + ': ' + hand)
-            if Game.is_Win(self.hands[i]):
+        for hand in self.hands:
+            print(Game.hand_To_String(hand))
+            if Game.is_Win(hand):
                 print('Tsumo!')
 
 class main():
-    for i in range(3):
+    for i in range(1):
         game = Game(1)
         #game.play()
 
 print('Finish')
 Game.make_Winning_Hand()
-#Game.make_Wrong_Hand()
+Game.make_Wrong_Hand()
