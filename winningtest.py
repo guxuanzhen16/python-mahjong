@@ -73,29 +73,25 @@ class Game (object):
             sortedHand = sorted(hand, key=lambda tile: tile.rank)
             self.hands.append(sortedHand)
 
-    # funny recursion moment theres probably a better way to do this
+    ''' finds all pairs in hand, removes them and starts removing melds'''
     @staticmethod
-    def remove_Pairs(sus_hand, current_index):
-        if current_index == len(sus_hand) - 1:
-            # if no pairs were found at all then no winning hand
-            print('no pairs found!')
-            return False
-        # for each pair found, create a new hand without pair and remove melds
-        # Saves where hand check left off and continues making new pairs until the end
-        elif sus_hand[current_index] == sus_hand[current_index+1]:
-            depaired_hand = copy.deepcopy(sus_hand)
-            del depaired_hand[current_index : current_index + 2]
-            # if a hand with this pair is not winnable, move on to next pair
-            if Game.remove_Melds(depaired_hand):
-                print('hand all removed!')
-                return True
-            else:
-                print('pairing failed, new try')
-                return Game.remove_Pairs(sus_hand, current_index +1)
-        else:
-            print('no pair here, checking next tile')
-            return Game.remove_Pairs(sus_hand, current_index +1)
-    
+    def remove_Pairs(sus_hand: list[Tile]) -> bool:
+        checked_tiles = [] # check skips tiles already checked
+        for i in range(len(sus_hand)):
+            # ends before the last tile
+            if i == len(sus_hand) - 2:
+                return False # no pairs were found
+            elif not (sus_hand[i] in checked_tiles):
+                if sus_hand[i] == sus_hand[i+1]:
+                    depaired_hand = copy.deepcopy(sus_hand)
+                    del depaired_hand[i : i + 2]
+                    # start removing melds with the hand without a pair
+                    if Game.remove_Melds(depaired_hand):
+                        print('hand all removed!')
+                        return True
+                else:
+                    checked_tiles.append(sus_hand[i])
+
     # yup, recursion time
     @staticmethod
     def remove_Melds(demelded_hand):
@@ -161,15 +157,15 @@ class Game (object):
         sus_hand = sorted(sus_hand, key=lambda tile: tile.rank)
         # begin the pain
         # if the hand is winnable, returns true
-        return Game.remove_Pairs(sus_hand, 0)
+        return Game.remove_Pairs(sus_hand)
 
     @staticmethod
     # testing
     def make_Winning_Hand():
         hand = []
         hand.append(Tile(1, 'B'))
-        hand.append(Tile(2, 'B'))
-        hand.append(Tile(3, 'B'))
+        hand.append(Tile(1, 'B'))
+        hand.append(Tile(1, 'B'))
         hand.append(Tile(4, 'B'))
         hand.append(Tile(5, 'B'))
         hand.append(Tile(6, 'B'))
