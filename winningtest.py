@@ -163,7 +163,7 @@ class Hand(object):
         checked_tiles = [] # check skips tiles already checked
         for i in range(len(self.hand)):
             # ends before the last tile
-            if i == len(self.hand) - 2:
+            if i == len(self.hand) - 1:
                 return False # no pairs were found
             elif not (self.hand[i] in checked_tiles):
                 if self.hand[i] == self.hand[i+1]:
@@ -179,6 +179,7 @@ class Hand(object):
 
     # checks if hand is a complete winning hand
     def is_Win(self) -> bool:
+        print('Starting to check win')
         sus_hand = copy.deepcopy(self)
         # ensure hand is sorted properly
         sus_hand.sort_Hand()
@@ -186,6 +187,7 @@ class Hand(object):
         if self.check_Seven_Pairs():
             print('This is seven pairs!')
             return True
+        print('Starting checking normal hand')
         # begin the pain
         # if the hand is winnable, returns true
         return Hand.remove_Pairs(sus_hand)
@@ -223,6 +225,25 @@ class Game (object):
             hand.sort_Hand()
             self.hands.append(hand)
 
+    def test(hand: str, win_Status: bool, if_Seven_Pairs: bool): #hand: in the format of 1m2m3s4p, etc., num must be even
+        half_Hand = int(len(hand)/2)
+        sus_Hand = Hand()
+        for x in range(half_Hand):
+            sus_Hand.add_Tile(Tile(int(hand[2*x]), hand[2*x+1]))
+        
+        print('Judging ' + sus_Hand.hand_To_String())
+
+        winning = sus_Hand.is_Win()
+        print(winning)
+
+        if winning and win_Status:
+            print('The hand is correctly judged to be winning!')
+        elif winning == True and win_Status == False:
+            print('The hand is incorrectly judged to be winning!')
+        elif winning == False and win_Status == True:
+            print('The hand is incorrectly judged to be losing!')
+        elif winning == False and win_Status == False:
+            print('The hand is correctly judged to be losing!')
 
     @staticmethod
     # testing
@@ -333,6 +354,12 @@ class main():
         game = Game(1)
         #game.play()
 
+<<<<<<< Updated upstream
+=======
+Game.make_Winning_Hand()
+
+Game.test('1M2M3M1S2S3S1P2P3P4M6M5M7S7S', True, False)
+>>>>>>> Stashed changes
 
 print('Finish')
 Game.make_Winning_Hand()
