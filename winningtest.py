@@ -353,15 +353,6 @@ class main():
     for i in range(1):
         game = Game(1)
         #game.play()
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-Game.make_Winning_Hand()
-
-Game.test('1M2M3M1S2S3S1P2P3P4M6M5M7S7S', True, False)
->>>>>>> Stashed changes
-=======
 def test(hand: str, winstatus: bool, ifsevenpairs: bool): #hand: in the format of 1m2m3s4p, etc., num must be even
     halfhand = int(len(hand)/2)
     for x in range(halfhand):
@@ -377,17 +368,9 @@ def test(hand: str, winstatus: bool, ifsevenpairs: bool): #hand: in the format o
     elif Game.is_Win(sus_hand) == False and winstatus == False:
         print('The hand is correctly judged to be losing!')
 
-
-
->>>>>>> Stashed changes
-
 print('Finish')
 Game.make_Winning_Hand()
 Game.make_Wrong_Hand()
-<<<<<<< Updated upstream
-Game.make_Seven_Pairs_Hand()
-=======
 Game.make_seven_pairs_Hand()
 
 test('1M2M3M1S2S3S1P2P3P4M6M5M7S7S', True, False)
->>>>>>> Stashed changes
