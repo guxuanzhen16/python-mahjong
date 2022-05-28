@@ -49,7 +49,6 @@ class Hand(object):
 
     # sorts by rank and suit
     def sort_Hand(self):
-        print('sorting suits')
         self.hand = sorted(self.hand, key=lambda tile: tile.suit)
         # sort within groups of suits then merge back into main hand
         # this way the hand is grouped into suits, which are then ranked in order
@@ -103,10 +102,10 @@ class Hand(object):
     @staticmethod
     def is_Set(demelded_hand):
         if demelded_hand[0] == demelded_hand[1] == demelded_hand[2]:
-           # print('set detected, removing set')
-           # print(demelded_hand[0])
-           # print(demelded_hand[1])
-           # print(demelded_hand[2])
+            print('set detected, removing set')
+            print(demelded_hand[0])
+            print(demelded_hand[1])
+            print(demelded_hand[2])
             Hand.remove_Set(demelded_hand)
             return True
 
@@ -117,10 +116,10 @@ class Hand(object):
     @staticmethod
     # removes three tiles in a run given the indexes
     def remove_Run(demelded_hand, first_tile_loc, second_tile_loc, third_tile_loc):
-       # print('run removal')
-       # print(demelded_hand[first_tile_loc])
-       # print(demelded_hand[second_tile_loc])
-       # print(demelded_hand[third_tile_loc])
+        print('run removal')
+        print(demelded_hand[first_tile_loc])
+        print(demelded_hand[second_tile_loc])
+        print(demelded_hand[third_tile_loc])
         demelded_hand.pop(third_tile_loc)
         demelded_hand.pop(second_tile_loc)
         demelded_hand.pop(first_tile_loc)
@@ -135,7 +134,7 @@ class Hand(object):
                         Hand.remove_Run(demelded_hand, 0, i, j)
                         return True
         else:
-            # print('no valid meld found!')
+            print('no valid meld found!')
             return False
 
     # yup, recursion time
@@ -145,7 +144,7 @@ class Hand(object):
         # if hand has been removed to the point of nothing left, then all
         # tiles could form into valid melds and hand is won
         if len(demelded_hand) == 0:
-            # print('melds are cleared!')
+            print('melds are cleared!')
             return True
         else:
             # is a set?
@@ -171,7 +170,7 @@ class Hand(object):
                     del depaired_hand[i : i + 2]
                     # start removing melds with the hand without a pair
                     if Hand.remove_Melds(depaired_hand):
-                        # print('hand all removed!')
+                        print('hand all removed!')
                         return True
                 else:
                     checked_tiles.append(self.hand[i])
@@ -227,49 +226,49 @@ class Game (object):
     @staticmethod
     # testing
     def make_Winning_Hand():
-        hand = Hand()
-        hand.add_Tile(Tile(1, 'S'))
-        hand.add_Tile(Tile(6, 'M'))
-        hand.add_Tile(Tile(1, 'S'))
-        hand.add_Tile(Tile(4, 'M'))
-        hand.add_Tile(Tile(5, 'M'))
-        hand.add_Tile(Tile(6, 'M'))
-        hand.add_Tile(Tile(1, 'S'))
-        hand.add_Tile(Tile(6, 'M'))
-        hand.add_Tile(Tile(7, 'P'))
-        hand.add_Tile(Tile(7, 'P'))
-        hand.add_Tile(Tile(7, 'P'))
-        hand.add_Tile(Tile(8, 'M'))
-        hand.add_Tile(Tile(8, 'M'))
-        hand.add_Tile(Tile(8, 'M'))
+        # hand = Hand()
+        # hand.add_Tile(Tile(1, 'S'))
+        # hand.add_Tile(Tile(6, 'M'))
+        # hand.add_Tile(Tile(1, 'S'))
+        # hand.add_Tile(Tile(4, 'M'))
+        # hand.add_Tile(Tile(5, 'M'))
+        # hand.add_Tile(Tile(6, 'M'))
+        # hand.add_Tile(Tile(1, 'S'))
+        # hand.add_Tile(Tile(6, 'M'))
+        # hand.add_Tile(Tile(7, 'P'))
+        # hand.add_Tile(Tile(7, 'P'))
+        # hand.add_Tile(Tile(7, 'P'))
+        # hand.add_Tile(Tile(8, 'M'))
+        # hand.add_Tile(Tile(8, 'M'))
+        # hand.add_Tile(Tile(8, 'M'))
 
-        print ('1 Test: ' + hand.hand_To_String())
+        # print ('1 Test: ' + hand.hand_To_String())
 
-        if hand.is_Win():
-            print('1. Tsumo!')
-        else:
-            print('1. Something went wrong, should have been a win')
+        # if hand.is_Win():
+        #     print('1. Tsumo!')
+        # else:
+        #     print('1. Something went wrong, should have been a win')
 
-       # hand = []
-       # hand.append(Tile(1, 'B'))
-       # hand.append(Tile(2, 'B'))
-       # hand.append(Tile(3, 'B'))
-       # hand.append(Tile(2, 'B'))
-       # hand.append(Tile(3, 'B'))
-       # hand.append(Tile(4, 'B'))
-       # hand.append(Tile(5, 'B'))
-       # hand.append(Tile(6, 'B'))
-       # hand.append(Tile(7, 'B'))
-       # hand.append(Tile(7, 'B'))
-       # hand.append(Tile(8, 'B'))
-       # hand.append(Tile(9, 'B'))
-       # hand.append(Tile(9, 'B'))
-       # hand.append(Tile(9, 'B'))
+       hand = Hand()
+       hand.add_Tile(Tile(1, 'P'))
+       hand.add_Tile(Tile(2, 'P'))
+       hand.add_Tile(Tile(3, 'P'))
+       hand.add_Tile(Tile(1, 'M'))
+       hand.add_Tile(Tile(2, 'M'))
+       hand.add_Tile(Tile(3, 'M'))
+       hand.add_Tile(Tile(4, 'M'))
+       hand.add_Tile(Tile(5, 'M'))
+       hand.add_Tile(Tile(6, 'M'))
+       hand.add_Tile(Tile(1, 'S'))
+       hand.add_Tile(Tile(2, 'S'))
+       hand.add_Tile(Tile(3, 'S'))
+       hand.add_Tile(Tile(7, 'S'))
+       hand.add_Tile(Tile(7, 'S'))
 
-       # if Game.is_Win(hand):
-       #     print('2. Tsumo!')
-       # else:
-       #     print('2. Something went wrong, should have been a win')
+       if hand.is_Win():
+           print('2. Tsumo!')
+       else:
+           print('2. Something went wrong, should have been a win')
 
     @staticmethod
     # testing
@@ -333,8 +332,30 @@ class main():
         game = Game(1)
         #game.play()
 
+def test(hand: str, winstatus: bool, ifsevenpairs: bool): #hand: in the format of 1m2m3s4p, etc., num must be even
+    halfhand = int(len(hand)/2)
+    sus_hand = Hand()
+    
+    for x in range(halfhand):
+        sus_hand.add_Tile(Tile(hand[2*x], hand[2*x+1]))
+        
+    print('Judging ' + sus_hand.hand_To_String())
+
+    if sus_hand.is_Win() and winstatus:
+        print('The hand is correctly judged to be winning!')
+    elif sus_hand.is_Win() == True and winstatus == False:
+        print('The hand is incorrectly judged to be winning!')
+    elif sus_hand.is_Win() == False and winstatus == True:
+        print('The hand is incorrectly judged to be losing!')
+    elif sus_hand.is_Win() == False and winstatus == False:
+        print('The hand is correctly judged to be losing!')
+    
+Game.make_Winning_Hand()
+
+test('1M2M3M1S2S3S1P2P3P4M6M5M7S7S', True, False)
 
 print('Finish')
-Game.make_Winning_Hand()
-Game.make_Wrong_Hand()
-Game.make_Seven_Pairs_Hand()
+
+#Game.make_Wrong_Hand()
+#Game.make_Seven_Pairs_Hand()
+
