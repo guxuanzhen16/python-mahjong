@@ -163,7 +163,7 @@ class Hand(object):
         checked_tiles = [] # check skips tiles already checked
         for i in range(len(self.hand)):
             # ends before the last tile
-            if i == len(self.hand) - 2:
+            if i == len(self.hand) - 1:
                 return False # no pairs were found
             elif not (self.hand[i] in checked_tiles):
                 if self.hand[i] == self.hand[i+1]:
@@ -228,20 +228,20 @@ class Game (object):
     # testing
     def make_Winning_Hand():
         hand = Hand()
-        hand.add_Tile(Tile(1, 'S'))
-        hand.add_Tile(Tile(6, 'M'))
-        hand.add_Tile(Tile(1, 'S'))
+        hand.add_Tile(Tile(1, 'P'))
+        hand.add_Tile(Tile(2, 'P'))
+        hand.add_Tile(Tile(3, 'P'))
+        hand.add_Tile(Tile(1, 'M'))
+        hand.add_Tile(Tile(2, 'M'))
+        hand.add_Tile(Tile(3, 'M'))
         hand.add_Tile(Tile(4, 'M'))
         hand.add_Tile(Tile(5, 'M'))
         hand.add_Tile(Tile(6, 'M'))
         hand.add_Tile(Tile(1, 'S'))
-        hand.add_Tile(Tile(6, 'M'))
-        hand.add_Tile(Tile(7, 'P'))
-        hand.add_Tile(Tile(7, 'P'))
-        hand.add_Tile(Tile(7, 'P'))
-        hand.add_Tile(Tile(8, 'M'))
-        hand.add_Tile(Tile(8, 'M'))
-        hand.add_Tile(Tile(8, 'M'))
+        hand.add_Tile(Tile(2, 'S'))
+        hand.add_Tile(Tile(3, 'S'))
+        hand.add_Tile(Tile(7, 'S'))
+        hand.add_Tile(Tile(7, 'S'))
 
         print ('1 Test: ' + hand.hand_To_String())
 
